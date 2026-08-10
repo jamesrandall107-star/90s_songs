@@ -596,76 +596,55 @@
                 simulated: true,
                 baseListeners: 46
             },
-            // YouTube Playlists configuration
+            // YouTube Playlists configuration (Now using playlistId)
             playlists: {
-                sadSongs: {
-                    name: "दुख भरे नग्मे",
-                    // Using standard royalty-free/public valid IDs for demo purposes
-                    videos: ["RD5W-CRQRRW94"] 
-                },
-                nineties: {
-                    name: "90 के दशक के गाने",
-                    videos: ["PQmrmVs10X8", "Umqb9KENlCE"]
-                },
-                badmashi: {
-                    name: "बदमाशी",
-                    videos: ["VOLKqXqXGho", "1W5BA0lB6UA"]
+                bollywood90s: {
+                    name: "90 के दशक",
+                    // T-Series 90s Hits Playlist as a placeholder
+                    playlistId: "PLH928P1-q41YqLwB2OQ4_Fq55K-4RjK_E" 
                 },
                 lofi: {
-                    name: "Lofi Songs",
-                    videos: ["bH04KqI0tYk", "85XPNuaA31w"]
+                    name: "Lofi Beats",
+                    playlistId: "PLofht4zAMy1b6qN88qGzQ7hG0n16A2iYx"
                 },
-                papaSongs: {
-                    name: "पापा के ज़माने के गाने",
-                    videos: ["9E0m9N-POfI", "dQw4w9WgXcQ"]
+                punjabi: {
+                    name: "पंजाबी हिट्स",
+                    playlistId: "PL9bw4S5ePsEG5nJ3E0XzQ30o7E6q0_cOQ"
+                },
+                retroMixes: {
+                    name: "Retro Mixes",
+                    // Example public classic playlist
+                    playlistId: "PL64G6j8ePNureM8YOWQEIMNNABx43u76m" 
                 }
             }
         };
 
         // --- js/playlist-manager.js ---
         const PlaylistManager = {
-            currentPlaylistId: null,
-            currentTrackIndex: 0,
+            currentPlaylistKey: null,
             trackMetadata: {}, // Cache for fetched YouTube titles
 
-            loadPlaylist(playlistId) {
-                if (!APP_CONFIG.playlists[playlistId]) return;
-                this.currentPlaylistId = playlistId;
-                this.currentTrackIndex = 0;
+            loadPlaylist(playlistKey) {
+                if (!APP_CONFIG.playlists[playlistKey]) return;
+                this.currentPlaylistKey = playlistKey;
                 
                 UI.updateStatus("LOADING...");
-                UI.renderTrackMenu();
-                this.playCurrentTrack();
-            },
-
-            playCurrentTrack() {
-                if (!this.currentPlaylistId) return;
-                const playlist = APP_CONFIG.playlists[this.currentPlaylistId];
-                if (this.currentTrackIndex >= playlist.videos.length) {
-                    this.currentTrackIndex = 0; // Loop back
-                }
+                // Reset menu while YouTube fetches the playlist data
+                document.getElementById('track-menu').innerHTML = `<div style="color:var(--lcd-orange); margin-bottom:10px;">Loading Tape Data...</div>`;
                 
-                const videoId = playlist.videos[this.currentTrackIndex];
-                YouTubePlayer.loadAndPlay(videoId);
-                UI.updateTrackMenuHighlight();
+                YouTubePlayer.loadAndPlayPlaylist(APP_CONFIG.playlists[playlistKey].playlistId);
             },
 
             next() {
-                if (!this.currentPlaylistId) return;
-                this.currentTrackIndex++;
-                this.playCurrentTrack();
+                if (YouTubePlayer.isReady) YouTubePlayer.player.nextVideo();
             },
 
             prev() {
-                if (!this.currentPlaylistId) return;
-                this.currentTrackIndex--;
-                if (this.currentTrackIndex < 0) this.currentTrackIndex = APP_CONFIG.playlists[this.currentPlaylistId].videos.length - 1;
-                this.playCurrentTrack();
+                if (YouTubePlayer.isReady) YouTubePlayer.player.previousVideo();
             },
             
             playSpecific(index) {
-                this.currentTrackIndex = index;
-                this.playCurrentTrack();
+                if (YouTubePlayer.isReady) YouTubePlayer.player.playVideoAt(index);
             }
         };
 
@@ -707,14 +686,16 @@
                     UI.updateStatus("PLAYING");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.add('playing');
                     
-                    // Fetch title
+                    // Fetch title of currently playing track
                     const data = this.player.getVideoData();
                     if(data && data.title) {
                         UI.updateTrackTitle(data.title);
                         // Cache it for menu
                         PlaylistManager.trackMetadata[data.video_id] = data.title;
-                        UI.renderTrackMenu();
                     }
+                    
+                    // Render menu now that playlist is active
+                    UI.renderTrackMenu();
                     Progress.startTracking();
 
                 } else if (event.data === YT.PlayerState.PAUSED) {
@@ -723,24 +704,30 @@
                     Progress.stopTracking();
 
                 } else if (event.data === YT.PlayerState.ENDED) {
-                    PlaylistManager.next();
+                    // YouTube API handles automatic playlist progression natively.
+                    // We just make sure UI stays synced.
+                    UI.updateStatus("LOADING NEXT...");
                 }
             },
 
             onError(event) {
                 console.error("YouTube Error", event.data);
                 UI.updateTrackTitle("गाना नहीं मिला, अगला गाना चलाते हैं...");
-                setTimeout(() => PlaylistManager.next(), 3000);
+                setTimeout(() => this.player.nextVideo(), 3000);
             },
 
-            loadAndPlay(videoId) {
+            loadAndPlayPlaylist(playlistId) {
                 if (!this.isReady) return;
                 UI.updateTrackTitle("गाना ढूंढ रहे हैं...");
-                this.player.loadVideoById(videoId);
+                this.player.loadPlaylist({
+                    list: playlistId,
+                    listType: 'playlist',
+                    index: 0
+                });
             },
 
             toggle() {
-                if (!this.isReady || !PlaylistManager.currentPlaylistId) return;
+                if (!this.isReady || !PlaylistManager.currentPlaylistKey) return;
                 const state = this.player.getPlayerState();
                 if (state === YT.PlayerState.PLAYING) {
                     this.player.pauseVideo();
@@ -786,8 +773,8 @@
                 });
             },
 
-            select(playlistId) {
-                const card = document.getElementById(`cassette-${playlistId}`);
+            select(playlistKey) {
+                const card = document.getElementById(`cassette-${playlistKey}`);
                 if (!card) return;
 
                 // Stop current playback if any
@@ -811,13 +798,13 @@
                 setTimeout(() => {
                     clone.remove();
                     document.getElementById('loaded-cassette-ui').classList.add('visible');
-                    PlaylistManager.loadPlaylist(playlistId);
+                    PlaylistManager.loadPlaylist(playlistKey);
                 }, 1500);
             },
 
             eject() {
                 if (YouTubePlayer.isReady) YouTubePlayer.player.stopVideo();
-                PlaylistManager.currentPlaylistId = null;
+                PlaylistManager.currentPlaylistKey = null;
                 document.getElementById('loaded-cassette-ui').classList.remove('visible');
                 document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
                 
@@ -940,27 +927,42 @@
             },
 
             renderTrackMenu() {
-                const plId = PlaylistManager.currentPlaylistId;
-                if (!plId) return;
+                const key = PlaylistManager.currentPlaylistKey;
+                if (!key) return;
                 
-                const pl = APP_CONFIG.playlists[plId];
+                const plConfig = APP_CONFIG.playlists[key];
                 const menu = document.getElementById('track-menu');
-                menu.innerHTML = `<div style="color:var(--lcd-orange); margin-bottom:10px;">${pl.name}</div>`;
                 
-                pl.videos.forEach((vid, index) => {
-                    const title = PlaylistManager.trackMetadata[vid] || `Track ${index + 1} (Loading...)`;
-                    const isPlaying = index === PlaylistManager.currentTrackIndex ? 'playing' : '';
+                // YouTube IFrame API provides the playlist as an array of IDs
+                let ytPlaylist = [];
+                let currentIndex = -1;
+                
+                if (YouTubePlayer.isReady && YouTubePlayer.player.getPlaylist) {
+                    ytPlaylist = YouTubePlayer.player.getPlaylist() || [];
+                    currentIndex = YouTubePlayer.player.getPlaylistIndex();
+                }
+
+                if (ytPlaylist.length === 0) {
+                     menu.innerHTML = `<div style="color:var(--lcd-orange); margin-bottom:10px;">${plConfig.name}</div><div class="track-item">Loading tracklist...</div>`;
+                     return;
+                }
+
+                let html = `<div style="color:var(--lcd-orange); margin-bottom:10px;">${plConfig.name}</div>`;
+                
+                ytPlaylist.forEach((vid, index) => {
+                    // We only know the titles of songs that have played or are playing.
+                    // The rest will look like generic tape tracks until reached.
+                    const title = PlaylistManager.trackMetadata[vid] || `Track ${(index + 1).toString().padStart(2, '0')}`;
+                    const isPlaying = index === currentIndex ? 'playing' : '';
                     
-                    menu.innerHTML += `
+                    html += `
                         <div class="track-item ${isPlaying}" onclick="PlaylistManager.playSpecific(${index})">
                             ${(index+1).toString().padStart(2, '0')} — ${title}
                         </div>
                     `;
                 });
-            },
-
-            updateTrackMenuHighlight() {
-                this.renderTrackMenu();
+                
+                menu.innerHTML = html;
             }
         };
 
@@ -988,3 +990,18 @@
 </html>
 ```eof
 
+```markdown:README.md
+# नाई की दुकान (Nai Ki Dukaan) - Retro Radio 💈📻
+
+Welcome to the **नाई की दुकान Retro Radio**, a modular, fully functional web application masquerading as an Indian roadside barber shop's vintage cassette player. Built purely with HTML, CSS, and Vanilla JS, it streams audio securely via the YouTube IFrame Player API.
+
+## 🚀 Installation & Localhost
+
+Because this application relies on standard browser APIs and the YouTube IFrame API, it is highly recommended to serve it over a local HTTP server rather than directly opening the file `file:///index.html` (which can cause CORS/Sandbox issues with YouTube).
+
+**Using Python (Recommended):**
+1. Open your terminal in the directory where you saved `index.html`.
+2. Run the following command:
+   
+```bash
+   python -m http.server 5500
