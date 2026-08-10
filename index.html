@@ -810,6 +810,7 @@
                 if (event.data === YT.PlayerState.PLAYING) {
                     UI.updateStatus("PLAYING");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.add('playing');
+                    document.getElementById('radio-deck').classList.add('playing');
                     
                     const data = this.player.getVideoData();
                     if(data && data.title) {
@@ -824,7 +825,7 @@
                     UI.updateStatus("PAUSED");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
                     Progress.stopTracking();
-
+                    document.getElementById('radio-deck').classList.remove('playing');
                 } else if (event.data === YT.PlayerState.ENDED) {
                     UI.updateStatus("LOADING NEXT...");
                 }
@@ -932,6 +933,7 @@
                 PlaylistManager.currentPlaylistKey = null;
                 document.getElementById('loaded-cassette-ui').classList.remove('visible');
                 document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                document.getElementById('radio-deck').classList.remove('playing');
                 
                 UI.updateStatus("EJECTED");
                 UI.updateTrackTitle("NO CASSETTE");
