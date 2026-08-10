@@ -583,7 +583,7 @@
 </head>
 <body>
 
-    <!-- Start Overlay (Requires user interaction for Audio Autoplay policies) -->
+    <!-- Start Overlay -->
     <div id="start-overlay" onclick="App.init()">
         <h2>CLICK TO ENTER</h2>
         <p>रेडियो चालू करने के लिए क्लिक करें</p>
@@ -592,7 +592,6 @@
     <!-- Hidden Elements -->
     <div id="youtube-player" style="display:none;"></div>
     <audio id="ambient-audio" loop>
-        <!-- Fallback ambient audio (street noise placeholder) -->
         <source src="https://cdn.freesound.org/previews/235/235835_4019029-lq.mp3" type="audio/mpeg">
     </audio>
 
@@ -604,7 +603,18 @@
 
     <div class="radio-container" id="radio-deck">
         <div class="radio-top-section">
-            <div class="speaker"></div>
+            
+            <!-- Left Speaker with Visualizer -->
+            <div class="speaker">
+                <div class="visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+            
             <div class="radio-center">
                 <!-- Cassette Deck -->
                 <div class="cassette-slot">
@@ -613,6 +623,7 @@
                         <div class="loaded-reel"></div>
                     </div>
                 </div>
+
                 <!-- LCD Display -->
                 <div class="lcd-display">
                     <div class="lcd-marquee-container">
@@ -626,7 +637,17 @@
                 </div>
             </div>
 
-            <div class="speaker"></div>
+            <!-- Right Speaker with Visualizer -->
+            <div class="speaker">
+                <div class="visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+            
         </div>
 
         <!-- Controls -->
@@ -710,8 +731,8 @@
                     playlistId: "PLeJedemx03LMvzFvhc6vU4ZzNW7p8uffC" // Replace with actual ID
                 },
                 rajasthani: {
-                    name: "राजस्थानी",
-                    playlistId: "YOUR_PLAYLIST_ID_RAJASTHANI" // Replace with actual ID
+                    name: "2000s Vibes",
+                    playlistId: "PLeJedemx03LPM-Xqdcsq5o_6VaBNJNjiW" // Replace with actual ID
                 },
                 pyarBhare: {
                     name: "प्यार भरे गीत",
@@ -728,7 +749,6 @@
             }
         };
 
-        // --- js/playlist-manager.js ---
         const PlaylistManager = {
             currentPlaylistKey: null,
             trackMetadata: {}, 
@@ -756,7 +776,6 @@
             }
         };
 
-        // --- js/youtube-player.js ---
         const YouTubePlayer = {
             player: null,
             isReady: false,
@@ -784,14 +803,13 @@
             onReady(event) {
                 this.isReady = true;
                 this.setVolume(document.getElementById('vol-slider').value);
-                console.log("YT Player Ready");
             },
 
             onStateChange(event) {
                 if (event.data === YT.PlayerState.PLAYING) {
                     UI.updateStatus("PLAYING");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.add('playing');
-                    document.getElementById('radio-deck').classList.add('playing');
+                    document.getElementById('radio-deck').classList.add('playing'); // Visualizer ON
                     
                     const data = this.player.getVideoData();
                     if(data && data.title) {
@@ -805,15 +823,15 @@
                 } else if (event.data === YT.PlayerState.PAUSED) {
                     UI.updateStatus("PAUSED");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                    document.getElementById('radio-deck').classList.remove('playing'); // Visualizer OFF
                     Progress.stopTracking();
-                    document.getElementById('radio-deck').classList.remove('playing');
+
                 } else if (event.data === YT.PlayerState.ENDED) {
                     UI.updateStatus("LOADING NEXT...");
                 }
             },
 
             onError(event) {
-                console.error("YouTube Error", event.data);
                 UI.updateTrackTitle("गाना नहीं मिला, अगला गाना चलाते हैं...");
                 setTimeout(() => this.player.nextVideo(), 3000);
             },
@@ -847,7 +865,6 @@
             }
         };
 
-        // --- js/cassette.js (UPGRADED UI RENDERING) ---
         const CassetteManager = {
             render() {
                 const container = document.getElementById('cassette-grid');
@@ -858,7 +875,6 @@
                     const colors = ['#ffcc00', '#ff6b6b', '#4ecdc4', '#ffe66d', '#ff8ed4', '#84b6f4', '#fdcae1', '#c1ff9b'];
                     const color = colors[index % colors.length];
 
-                    // Upgraded bigger HTML structure mapped directly inside the single file
                     const html = `
                         <div class="cassette-card" id="cassette-${key}" onclick="CassetteManager.select('${key}')">
                             <div class="screw top-left"></div>
@@ -888,6 +904,7 @@
 
                 if (YouTubePlayer.isReady) YouTubePlayer.player.stopVideo();
                 document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                document.getElementById('radio-deck').classList.remove('playing'); // Visualizer OFF
                 document.getElementById('loaded-cassette-ui').classList.remove('visible');
 
                 const clone = card.cloneNode(true);
@@ -914,7 +931,7 @@
                 PlaylistManager.currentPlaylistKey = null;
                 document.getElementById('loaded-cassette-ui').classList.remove('visible');
                 document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
-                document.getElementById('radio-deck').classList.remove('playing');
+                document.getElementById('radio-deck').classList.remove('playing'); // Visualizer OFF
                 
                 UI.updateStatus("EJECTED");
                 UI.updateTrackTitle("NO CASSETTE");
@@ -924,7 +941,6 @@
             }
         };
 
-        // --- js/radio-controls.js ---
         const RadioControls = {
             togglePlay() { YouTubePlayer.toggle(); },
             next() { PlaylistManager.next(); },
@@ -940,7 +956,6 @@
             }
         };
 
-        // --- js/progress.js ---
         const Progress = {
             interval: null,
 
@@ -990,7 +1005,6 @@
             }
         };
 
-        // --- js/listener-stats.js & js/location-status.js ---
         const Stats = {
             locations: [
                 "जयपुर से कोई सुन रहा है...", 
@@ -1013,7 +1027,6 @@
             }
         };
 
-        // --- js/ui.js ---
         const UI = {
             setupConfig() {
                 document.getElementById('ui-shop-name').innerText = APP_CONFIG.siteName;
@@ -1069,7 +1082,6 @@
             }
         };
 
-        // --- js/app.js ---
         const App = {
             init() {
                 document.getElementById('start-overlay').style.opacity = '0';
