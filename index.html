@@ -537,46 +537,72 @@
             .cassette-card { flex: 0 0 auto; transform: scale(0.9); margin-right: -10px; }
         }
 
-        /* --- Speaker LED Visualizer --- */
+/* --- Round Speakers & LED Dot Visualizer --- */
         .speaker {
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+            margin: auto 0;
+            background: var(--radio-speaker);
+            border-radius: 50%; /* CRITICAL: This makes the speaker boxes perfectly round */
+            border: 5px solid #444;
+            box-shadow: inset 5px 5px 15px #000, 2px 2px 5px rgba(0,0,0,0.5);
+            background-image: radial-gradient(#333 15%, transparent 16%);
+            background-size: 8px 8px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        
         .visualizer {
-            display: flex;
-            align-items: flex-end;
-            gap: 5px;
-            height: 40px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
             opacity: 0.1; /* Dim when radio is off */
             transition: opacity 0.3s;
         }
+        
         #radio-deck.playing .visualizer {
             opacity: 1; /* Bright when playing */
         }
-        .visualizer .bar {
-            width: 8px;
-            height: 5px;
+        
+        .visualizer .dot {
+            width: 10px;
+            height: 10px;
             background: var(--lcd-orange);
-            border-radius: 2px;
+            border-radius: 50%; /* CRITICAL: This makes the LEDs round dots */
             box-shadow: 0 0 5px var(--lcd-orange);
         }
         
-        /* Make them dance when playing */
-        #radio-deck.playing .visualizer .bar {
-            animation: bounceEQ 0.5s infinite alternate ease-in-out;
+        /* Make the center dot slightly larger to mimic the core of a speaker */
+        .visualizer .dot:nth-child(5) {
+            transform: scale(1.3);
         }
         
-        /* Stagger the bars so they move randomly */
-        #radio-deck.playing .visualizer .bar:nth-child(1) { animation-duration: 0.4s; }
-        #radio-deck.playing .visualizer .bar:nth-child(2) { animation-duration: 0.7s; }
-        #radio-deck.playing .visualizer .bar:nth-child(3) { animation-duration: 0.5s; }
-        #radio-deck.playing .visualizer .bar:nth-child(4) { animation-duration: 0.3s; }
-        #radio-deck.playing .visualizer .bar:nth-child(5) { animation-duration: 0.6s; }
+        /* Make them flicker independently when playing */
+        #radio-deck.playing .visualizer .dot {
+            animation: pulseDot 0.4s infinite alternate ease-in-out;
+        }
+        
+        /* Stagger the flickering speeds for a random effect */
+        #radio-deck.playing .visualizer .dot:nth-child(1) { animation-duration: 0.3s; animation-delay: 0.1s; }
+        #radio-deck.playing .visualizer .dot:nth-child(2) { animation-duration: 0.5s; animation-delay: 0.3s; }
+        #radio-deck.playing .visualizer .dot:nth-child(3) { animation-duration: 0.4s; animation-delay: 0.2s; }
+        #radio-deck.playing .visualizer .dot:nth-child(4) { animation-duration: 0.6s; animation-delay: 0.4s; }
+        #radio-deck.playing .visualizer .dot:nth-child(5) { animation: pulseCenter 0.3s infinite alternate ease-in-out; }
+        #radio-deck.playing .visualizer .dot:nth-child(6) { animation-duration: 0.4s; animation-delay: 0.1s; }
+        #radio-deck.playing .visualizer .dot:nth-child(7) { animation-duration: 0.5s; animation-delay: 0.5s; }
+        #radio-deck.playing .visualizer .dot:nth-child(8) { animation-duration: 0.3s; animation-delay: 0.2s; }
+        #radio-deck.playing .visualizer .dot:nth-child(9) { animation-duration: 0.6s; animation-delay: 0.3s; }
 
-        @keyframes bounceEQ {
-            0% { height: 5px; }
-            100% { height: 40px; }
+        @keyframes pulseDot {
+            0% { opacity: 0.3; transform: scale(0.8); box-shadow: 0 0 2px var(--lcd-orange); }
+            100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px var(--lcd-orange); }
+        }
+
+        @keyframes pulseCenter {
+            0% { opacity: 0.5; transform: scale(1.1); box-shadow: 0 0 5px var(--lcd-orange); }
+            100% { opacity: 1; transform: scale(1.6); box-shadow: 0 0 15px var(--lcd-orange); }
         }
         
     </style>
