@@ -6,7 +6,7 @@
     <title>नाई की दुकान - Retro Radio</title>
     <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=VT323&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     
-    <style>
+<style>
         /* =========================================================
            CSS ARCHITECTURE (Bundled for single-file deployment)
            ========================================================= */
@@ -304,7 +304,7 @@
             border-radius: 3px;
         }
 
-        /* Track Menu List */
+        /* Track Menu List - FIXED visibility and width */
         .track-menu {
             background: #2a2a2a;
             border-radius: 10px;
@@ -314,6 +314,7 @@
             overflow-y: auto;
             border: 4px solid #111;
             display: none;
+            width: 100%; /* Keeps it full width */
         }
         .track-menu.active { display: block; }
         
@@ -327,6 +328,8 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: block; /* Forces it to maintain shape */
+            width: 100%;    /* Prevents the text box from shrinking to 0 */
         }
         .track-item:hover { background: #3a3a3a; }
         .track-item.playing { color: var(--lcd-orange); font-weight: bold; }
@@ -350,8 +353,8 @@
 
         .cassette-card {
             background: var(--cassette-bg);
-            width: 280px;         /* Upgraded Larger Size */
-            height: 175px;        /* Upgraded Larger Size */
+            width: 280px;         
+            height: 175px;        
             border-radius: 12px;
             border: 4px solid #222;
             box-shadow: 6px 8px 0 #111;
