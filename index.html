@@ -120,6 +120,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            min-width: 0;
         }
 
         .cassette-slot {
@@ -184,6 +185,7 @@
             text-transform: uppercase;
             overflow: hidden;
             position: relative;
+            min-width: 0;
         }
 
         .lcd-marquee-container {
@@ -209,6 +211,9 @@
             font-size: 1rem;
             color: #0f8;
             opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .radio-controls {
@@ -319,6 +324,9 @@
             font-family: var(--font-lcd);
             color: var(--lcd-text);
             font-size: 1.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .track-item:hover { background: #3a3a3a; }
         .track-item.playing { color: var(--lcd-orange); font-weight: bold; }
