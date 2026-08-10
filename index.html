@@ -22,7 +22,7 @@
             --lcd-bg: #0a1105;
             --lcd-text: #32ff32;
             --lcd-orange: #ffaa00;
-            --cassette-bg: #f4f4f4;
+            --cassette-bg: #e0e0e0;
             --font-sign: 'Yatra One', cursive;
             --font-lcd: 'VT323', monospace;
             --font-ui: 'Poppins', sans-serif;
@@ -36,7 +36,6 @@
 
         body {
             background-color: var(--wall-color);
-            /* Simulated retro crimson wall with slight texture */
             background-image: 
                 radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%),
                 repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 4px);
@@ -150,7 +149,7 @@
             height: 60%;
             background: #444;
             border-radius: 4px;
-            display: none; /* Shown via JS */
+            display: none;
             align-items: center;
             justify-content: space-around;
             padding: 5px;
@@ -324,7 +323,7 @@
         .track-item:hover { background: #3a3a3a; }
         .track-item.playing { color: var(--lcd-orange); font-weight: bold; }
 
-        /* --- css/cassette.css --- */
+        /* --- css/cassette.css (UPGRADED BIGGER CASSETTES) --- */
         .library-title {
             font-family: var(--font-sign);
             font-size: 2rem;
@@ -335,74 +334,87 @@
         .cassette-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 30px;
             justify-content: center;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .cassette-card {
             background: var(--cassette-bg);
-            width: 200px;
-            height: 130px;
-            border-radius: 10px;
-            border: 3px solid #333;
-            box-shadow: 4px 4px 0 #000;
+            width: 280px;         /* Upgraded Larger Size */
+            height: 175px;        /* Upgraded Larger Size */
+            border-radius: 12px;
+            border: 4px solid #222;
+            box-shadow: 6px 8px 0 #111;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
             overflow: hidden;
+            padding-top: 15px;
         }
 
         .cassette-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 6px 8px 0 #000;
+            transform: translateY(-8px) rotate(-1deg);
+            box-shadow: 10px 14px 0 #111;
         }
 
+        /* Realistic Cassette Screws */
+        .screw { position: absolute; width: 8px; height: 8px; background: #999; border-radius: 50%; border: 2px solid #333; }
+        .screw.top-left { top: 8px; left: 8px; }
+        .screw.top-right { top: 8px; right: 8px; }
+        .screw.bottom-left { bottom: 8px; left: 8px; }
+        .screw.bottom-right { bottom: 8px; right: 8px; }
+
         .cassette-label {
-            width: 85%;
-            height: 60%;
-            background: #ffcc00;
-            border-radius: 5px;
-            border: 2px solid #333;
+            width: 88%;
+            height: 70%;
+            border-radius: 8px;
+            border: 3px solid #222;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 5px;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
         }
 
         .cassette-title {
-            font-weight: bold;
+            font-family: var(--font-ui);
+            font-weight: 800;
             color: #111;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             text-align: center;
             background: #fff;
-            padding: 2px 10px;
-            border: 1px solid #333;
-            border-radius: 3px;
+            padding: 4px 15px;
+            border: 2px solid #222;
+            border-radius: 4px;
             width: 90%;
+            margin-top: 8px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
         }
 
         .cassette-reels {
             display: flex;
-            gap: 30px;
-            margin-top: 10px;
+            gap: 45px;
+            margin-top: 15px;
+            z-index: 3;
         }
 
         .reel {
-            width: 25px;
-            height: 25px;
-            background: #fff;
+            width: 35px;
+            height: 35px;
+            background: #eee;
             border-radius: 50%;
-            border: 4px solid #333;
+            border: 4px solid #222;
             position: relative;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
         
         .reel::after {
@@ -410,20 +422,46 @@
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 6px; height: 6px;
-            background: #333;
+            width: 8px; height: 8px;
+            background: #222;
             border-radius: 50%;
         }
 
         .tape-window {
             position: absolute;
-            top: 45px;
-            width: 60px;
-            height: 25px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #333;
-            border-radius: 4px;
+            bottom: 10px;
+            width: 110px;
+            height: 40px;
+            background: rgba(0,0,0,0.7);
+            border: 3px solid #222;
+            border-radius: 6px;
             z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .magnetic-tape {
+            width: 80%;
+            height: 100%;
+            background: #111;
+            border-radius: 50%;
+            transform: scaleX(1.5);
+            box-shadow: 0 0 10px #000;
+        }
+
+        .cassette-bottom-ridge {
+            position: absolute;
+            bottom: 0;
+            width: 70%;
+            height: 15px;
+            background: #ccc;
+            border-top: 3px solid #222;
+            border-left: 3px solid #222;
+            border-right: 3px solid #222;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
 
         /* --- css/animations.css --- */
@@ -444,7 +482,7 @@
 
         @keyframes insertCassette {
             0% { transform: scale(1) translateY(0); z-index: 100; }
-            40% { transform: scale(1.2) translateY(-100px); opacity: 1; }
+            40% { transform: scale(1.1) translateY(-100px); opacity: 1; }
             100% { transform: scale(0.3) translateY(-300px); opacity: 0; }
         }
 
@@ -481,12 +519,11 @@
         /* --- css/responsive.css --- */
         @media (max-width: 768px) {
             .radio-top-section { flex-direction: column; }
-            .speaker { display: none; } /* Hide side speakers on mobile to save space */
+            .speaker { display: none; }
             .shop-signboard h1 { font-size: 2.2rem; }
             .shop-signboard p { font-size: 1rem; }
             .cassette-grid { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 20px; justify-content: flex-start; }
-            .cassette-card { flex: 0 0 auto; }
-            .btn { font-size: 1rem; padding: 8px 12px; }
+            .cassette-card { flex: 0 0 auto; transform: scale(0.9); margin-right: -10px; }
         }
     </style>
 </head>
@@ -568,7 +605,7 @@
             <span id="ui-time-total">00:00</span>
         </div>
         
-        <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem;" onclick="UI.toggleTrackMenu()">SHOW TRACKLIST 🖹</button>
+        <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem; margin-top: 15px;" onclick="UI.toggleTrackMenu()">SHOW TRACKLIST 🖹</button>
         <div class="track-menu" id="track-menu">
             <!-- Populated via JS -->
         </div>
@@ -596,11 +633,10 @@
                 simulated: true,
                 baseListeners: 46
             },
-            // YouTube Playlists configuration (Now using playlistId)
+            // YouTube Playlists configuration 
             playlists: {
                 bollywood90s: {
                     name: "90 के दशक",
-                    // T-Series 90s Hits Playlist as a placeholder
                     playlistId: "PLeJedemx03LMEILq9qu6IYiB0Qnk7l5Au" 
                 },
                 lofi: {
@@ -613,8 +649,29 @@
                 },
                 retroMixes: {
                     name: "Retro Mixes",
-                    // Example public classic playlist
-                    playlistId: "PLeJedemx03LP1DdTETCf531SyGlF3FYmY"
+                    playlistId: "PLeJedemx03LP1DdTETCf531SyGlF3FYmY" 
+                },
+                
+                // --- NEW PLAYLISTS ADDED BELOW ---
+                chatpate: {
+                    name: "चटपटे गाने",
+                    playlistId: "PLeJedemx03LMvzFvhc6vU4ZzNW7p8uffC" // Replace with actual ID
+                },
+                rajasthani: {
+                    name: "राजस्थानी",
+                    playlistId: "YOUR_PLAYLIST_ID_RAJASTHANI" // Replace with actual ID
+                },
+                pyarBhare: {
+                    name: "प्यार भरे गीत",
+                    playlistId: "PLeJedemx03LOpyAS7WCsGiGM0C4_VUBDN" // Replace with actual ID
+                },
+                aaramdayak: {
+                    name: "आरामदायक गाने",
+                    playlistId: "PLeJedemx03LNIlgyA16Vhs3JlrRD6jx_s" // Replace with actual ID
+                },
+                marwadi: {
+                    name: "मारवाड़ी चटकारा",
+                    playlistId: "PLO0ddOYbT8AL0ozj45QQmjn1IE985R-98" // Replace with actual ID
                 }
             }
         };
@@ -622,14 +679,13 @@
         // --- js/playlist-manager.js ---
         const PlaylistManager = {
             currentPlaylistKey: null,
-            trackMetadata: {}, // Cache for fetched YouTube titles
+            trackMetadata: {}, 
 
             loadPlaylist(playlistKey) {
                 if (!APP_CONFIG.playlists[playlistKey]) return;
                 this.currentPlaylistKey = playlistKey;
                 
                 UI.updateStatus("LOADING...");
-                // Reset menu while YouTube fetches the playlist data
                 document.getElementById('track-menu').innerHTML = `<div style="color:var(--lcd-orange); margin-bottom:10px;">Loading Tape Data...</div>`;
                 
                 YouTubePlayer.loadAndPlayPlaylist(APP_CONFIG.playlists[playlistKey].playlistId);
@@ -654,13 +710,11 @@
             isReady: false,
 
             init() {
-                // Inject YT API
                 const tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
                 const firstScriptTag = document.getElementsByTagName('script')[0];
                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
                 
-                // Expose global callback for YT API
                 window.onYouTubeIframeAPIReady = () => {
                     this.player = new YT.Player('youtube-player', {
                         height: '0',
@@ -686,15 +740,12 @@
                     UI.updateStatus("PLAYING");
                     document.getElementById('loaded-cassette-ui').parentElement.classList.add('playing');
                     
-                    // Fetch title of currently playing track
                     const data = this.player.getVideoData();
                     if(data && data.title) {
                         UI.updateTrackTitle(data.title);
-                        // Cache it for menu
                         PlaylistManager.trackMetadata[data.video_id] = data.title;
                     }
                     
-                    // Render menu now that playlist is active
                     UI.renderTrackMenu();
                     Progress.startTracking();
 
@@ -704,8 +755,6 @@
                     Progress.stopTracking();
 
                 } else if (event.data === YT.PlayerState.ENDED) {
-                    // YouTube API handles automatic playlist progression natively.
-                    // We just make sure UI stays synced.
                     UI.updateStatus("LOADING NEXT...");
                 }
             },
@@ -745,28 +794,35 @@
             }
         };
 
-        // --- js/cassette.js ---
+        // --- js/cassette.js (UPGRADED UI RENDERING) ---
         const CassetteManager = {
             render() {
                 const container = document.getElementById('cassette-grid');
                 container.innerHTML = '';
 
-                Object.keys(APP_CONFIG.playlists).forEach(key => {
+                Object.keys(APP_CONFIG.playlists).forEach((key, index) => {
                     const pl = APP_CONFIG.playlists[key];
-                    // Label colors logic based on name length for variety
-                    const colors = ['#ffcc00', '#ff6b6b', '#4ecdc4', '#ffe66d', '#ff8ed4'];
-                    const color = colors[pl.name.length % colors.length];
+                    const colors = ['#ffcc00', '#ff6b6b', '#4ecdc4', '#ffe66d', '#ff8ed4', '#84b6f4', '#fdcae1', '#c1ff9b'];
+                    const color = colors[index % colors.length];
 
+                    // Upgraded bigger HTML structure mapped directly inside the single file
                     const html = `
                         <div class="cassette-card" id="cassette-${key}" onclick="CassetteManager.select('${key}')">
+                            <div class="screw top-left"></div>
+                            <div class="screw top-right"></div>
+                            <div class="screw bottom-left"></div>
+                            <div class="screw bottom-right"></div>
                             <div class="cassette-label" style="background: ${color}">
                                 <div class="cassette-title">${pl.name}</div>
                                 <div class="cassette-reels">
                                     <div class="reel"></div>
                                     <div class="reel"></div>
                                 </div>
-                                <div class="tape-window"></div>
+                                <div class="tape-window">
+                                    <div class="magnetic-tape"></div>
+                                </div>
                             </div>
+                            <div class="cassette-bottom-ridge"></div>
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', html);
@@ -777,12 +833,10 @@
                 const card = document.getElementById(`cassette-${playlistKey}`);
                 if (!card) return;
 
-                // Stop current playback if any
                 if (YouTubePlayer.isReady) YouTubePlayer.player.stopVideo();
                 document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
                 document.getElementById('loaded-cassette-ui').classList.remove('visible');
 
-                // Animation clone
                 const clone = card.cloneNode(true);
                 const rect = card.getBoundingClientRect();
                 clone.style.position = 'fixed';
@@ -872,7 +926,7 @@
                 
                 const targetTime = percent * total;
                 YouTubePlayer.seekTo(targetTime);
-                this.update(); // instant UI update
+                this.update(); 
             },
 
             formatTime(seconds) {
@@ -893,13 +947,11 @@
             ],
             
             init() {
-                // Simulate listener count fluctuation
                 setInterval(() => {
                     let listeners = APP_CONFIG.listenerStats.baseListeners + Math.floor(Math.random() * 15) - 5;
                     document.getElementById('ui-listeners').innerText = `● ${listeners} LISTENING`;
                 }, 5000);
 
-                // Rotate locations
                 setInterval(() => {
                     let loc = this.locations[Math.floor(Math.random() * this.locations.length)];
                     document.getElementById('ui-location').innerText = loc;
@@ -933,7 +985,6 @@
                 const plConfig = APP_CONFIG.playlists[key];
                 const menu = document.getElementById('track-menu');
                 
-                // YouTube IFrame API provides the playlist as an array of IDs
                 let ytPlaylist = [];
                 let currentIndex = -1;
                 
@@ -950,8 +1001,6 @@
                 let html = `<div style="color:var(--lcd-orange); margin-bottom:10px;">${plConfig.name}</div>`;
                 
                 ytPlaylist.forEach((vid, index) => {
-                    // We only know the titles of songs that have played or are playing.
-                    // The rest will look like generic tape tracks until reached.
                     const title = PlaylistManager.trackMetadata[vid] || `Track ${(index + 1).toString().padStart(2, '0')}`;
                     const isPlaying = index === currentIndex ? 'playing' : '';
                     
@@ -969,17 +1018,14 @@
         // --- js/app.js ---
         const App = {
             init() {
-                // Hide overlay
                 document.getElementById('start-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('start-overlay').style.display = 'none', 500);
                 
-                // Initialize modules
                 UI.setupConfig();
                 CassetteManager.render();
                 YouTubePlayer.init();
                 Stats.init();
                 
-                // Set initial ambient volume
                 document.getElementById('amb-slider').value = APP_CONFIG.ambientAudio.defaultVolume;
                 RadioControls.setAmbientVolume(APP_CONFIG.ambientAudio.defaultVolume);
             }
