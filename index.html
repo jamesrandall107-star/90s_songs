@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>नाई की दुकान - Retro Radio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=VT323&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================================
+           CSS ARCHITECTURE (Bundled for single-file deployment)
+           ========================================================= */
+
+        /* --- css/main.css --- */
+        :root {
+            --wall-color: #901a1e;
+            --sign-bg: #ffb800;
+            --sign-text: #111;
+            --radio-body: #e4d5b7;
+            --radio-dark: #2a2a2a;
+            --radio-speaker: #1a1a1a;
+            --lcd-bg: #0a1105;
+            --lcd-text: #32ff32;
+            --lcd-orange: #ffaa00;
+            --cassette-bg: #f4f4f4;
+            --font-sign: 'Yatra One', cursive;
+            --font-lcd: 'VT323', monospace;
+            --font-ui: 'Poppins', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--wall-color);
+            /* Simulated retro crimson wall with slight texture */
+            background-image: 
+                radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%),
+                repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 4px);
+            background-attachment: fixed;
+            font-family: var(--font-ui);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        /* Hero / Signboard */
+        .shop-signboard {
+            background: var(--sign-bg);
+            color: var(--sign-text);
+            padding: 20px 40px;
+            margin: 30px 20px;
+            border: 8px solid #333;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+            max-width: 800px;
+            width: 90%;
+            transform: rotate(-1deg);
+        }
+
+        .shop-signboard h1 {
+            font-family: var(--font-sign);
+            font-size: 3.5rem;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        }
+
+        .shop-signboard p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-top: 2px dashed #555;
+            padding-top: 10px;
+        }
+
+        /* --- css/radio.css --- */
+        .radio-container {
+            background: var(--radio-body);
+            width: 90%;
+            max-width: 700px;
+            border-radius: 20px;
+            border: 4px solid #333;
+            box-shadow: 
+                inset -10px -10px 20px rgba(0,0,0,0.2),
+                inset 10px 10px 20px rgba(255,255,255,0.5),
+                15px 15px 0px rgba(0,0,0,0.6);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .radio-top-section {
+            display: flex;
+            gap: 20px;
+        }
+
+        .speaker {
+            flex: 1;
+            background: var(--radio-speaker);
+            border-radius: 10px;
+            border: 4px solid #444;
+            box-shadow: inset 5px 5px 15px #000;
+            background-image: radial-gradient(#333 15%, transparent 16%);
+            background-size: 8px 8px;
+            min-height: 150px;
+        }
+
+        .radio-center {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cassette-slot {
+            background: #1a1a1a;
+            height: 80px;
+            border-radius: 8px;
+            border: 4px solid #444;
+            box-shadow: inset 0px 10px 20px #000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .cassette-slot::after {
+            content: "TAPE DECK";
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .loaded-cassette {
+            width: 80%;
+            height: 60%;
+            background: #444;
+            border-radius: 4px;
+            display: none; /* Shown via JS */
+            align-items: center;
+            justify-content: space-around;
+            padding: 5px;
+        }
+
+        .loaded-cassette.visible { display: flex; }
+
+        .loaded-reel {
+            width: 30px;
+            height: 30px;
+            background: #222;
+            border-radius: 50%;
+            border: 2px solid #666;
+            animation: spin 2s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .playing .loaded-reel { animation-play-state: running; }
+
+        .lcd-display {
+            background: var(--lcd-bg);
+            border: 4px solid #555;
+            border-radius: 5px;
+            height: 100px;
+            box-shadow: inset 2px 2px 10px #000;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: var(--font-lcd);
+            color: var(--lcd-text);
+            text-transform: uppercase;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .lcd-marquee-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .lcd-marquee {
+            display: inline-block;
+            font-size: 1.5rem;
+            animation: marquee 10s linear infinite;
+        }
+
+        .lcd-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            color: var(--lcd-orange);
+        }
+
+        .lcd-location {
+            font-size: 1rem;
+            color: #0f8;
+            opacity: 0.8;
+        }
+
+        .radio-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #d4c3a3;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #bba582;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #e04a4a;
+            border: none;
+            border-bottom: 4px solid #8b2323;
+            border-right: 4px solid #8b2323;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            border-bottom: 2px solid #8b2323;
+            border-right: 2px solid #8b2323;
+        }
+
+        .btn.btn-secondary { background: #555; border-color: #222; }
+        
+        .sliders {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #e04a4a;
+            cursor: pointer;
+        }
+
+        .progress-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+            font-family: var(--font-lcd);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .progress-bar-wrapper {
+            flex: 1;
+            height: 10px;
+            background: #999;
+            border-radius: 5px;
+            border: 2px solid #555;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #e04a4a;
+            width: 0%;
+            border-radius: 3px;
+        }
+
+        /* Track Menu List */
+        .track-menu {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 4px solid #111;
+            display: none;
+        }
+        .track-menu.active { display: block; }
+        
+        .track-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-bottom: 1px dashed #444;
+            font-family: var(--font-lcd);
+            color: var(--lcd-text);
+            font-size: 1.2rem;
+        }
+        .track-item:hover { background: #3a3a3a; }
+        .track-item.playing { color: var(--lcd-orange); font-weight: bold; }
+
+        /* --- css/cassette.css --- */
+        .library-title {
+            font-family: var(--font-sign);
+            font-size: 2rem;
+            margin: 40px 0 20px;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .cassette-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .cassette-card {
+            background: var(--cassette-bg);
+            width: 200px;
+            height: 130px;
+            border-radius: 10px;
+            border: 3px solid #333;
+            box-shadow: 4px 4px 0 #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            overflow: hidden;
+        }
+
+        .cassette-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 6px 8px 0 #000;
+        }
+
+        .cassette-label {
+            width: 85%;
+            height: 60%;
+            background: #ffcc00;
+            border-radius: 5px;
+            border: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 5px;
+        }
+
+        .cassette-title {
+            font-weight: bold;
+            color: #111;
+            font-size: 0.9rem;
+            text-align: center;
+            background: #fff;
+            padding: 2px 10px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            width: 90%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cassette-reels {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+        }
+
+        .reel {
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            border: 4px solid #333;
+            position: relative;
+        }
+        
+        .reel::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px; height: 6px;
+            background: #333;
+            border-radius: 50%;
+        }
+
+        .tape-window {
+            position: absolute;
+            top: 45px;
+            width: 60px;
+            height: 25px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #333;
+            border-radius: 4px;
+            z-index: 2;
+        }
+
+        /* --- css/animations.css --- */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .inserting-animation {
+            animation: insertCassette 1.5s forwards ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes insertCassette {
+            0% { transform: scale(1) translateY(0); z-index: 100; }
+            40% { transform: scale(1.2) translateY(-100px); opacity: 1; }
+            100% { transform: scale(0.3) translateY(-300px); opacity: 0; }
+        }
+
+        /* Start Overlay */
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(144, 26, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+
+        #start-overlay h2 {
+            font-family: var(--font-sign);
+            font-size: 4rem;
+            color: var(--sign-bg);
+            text-shadow: 4px 4px 0 #000;
+            margin-bottom: 10px;
+        }
+
+        #start-overlay p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        /* --- css/responsive.css --- */
+        @media (max-width: 768px) {
+            .radio-top-section { flex-direction: column; }
+            .speaker { display: none; } /* Hide side speakers on mobile to save space */
+            .shop-signboard h1 { font-size: 2.2rem; }
+            .shop-signboard p { font-size: 1rem; }
+            .cassette-grid { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 20px; justify-content: flex-start; }
+            .cassette-card { flex: 0 0 auto; }
+            .btn { font-size: 1rem; padding: 8px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Start Overlay (Requires user interaction for Audio Autoplay policies) -->
+    <div id="start-overlay" onclick="App.init()">
+        <h2>CLICK TO ENTER</h2>
+        <p>रेडियो चालू करने के लिए क्लिक करें</p>
+    </div>
+
+    <!-- Hidden Elements -->
+    <div id="youtube-player" style="display:none;"></div>
+    <audio id="ambient-audio" loop>
+        <!-- Fallback ambient audio (street noise placeholder) -->
+        <source src="https://cdn.freesound.org/previews/235/235835_4019029-lq.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Main Content -->
+    <div class="shop-signboard">
+        <h1 id="ui-shop-name">नाई की दुकान</h1>
+        <p id="ui-shop-tagline">यहां पे कटिंग का पता नहीं पर गाने अच्छे बजते हैं।</p>
+    </div>
+
+    <div class="radio-container" id="radio-deck">
+        <div class="radio-top-section">
+            <div class="speaker"></div>
+            
+            <div class="radio-center">
+                <!-- Cassette Deck -->
+                <div class="cassette-slot">
+                    <div class="loaded-cassette" id="loaded-cassette-ui">
+                        <div class="loaded-reel"></div>
+                        <div class="loaded-reel"></div>
+                    </div>
+                </div>
+
+                <!-- LCD Display -->
+                <div class="lcd-display">
+                    <div class="lcd-marquee-container">
+                        <div class="lcd-marquee" id="ui-track-title">NO CASSETTE INSERTED</div>
+                    </div>
+                    <div class="lcd-location" id="ui-location">WAITING FOR SIGNAL...</div>
+                    <div class="lcd-stats">
+                        <span id="ui-status">STOPPED</span>
+                        <span id="ui-listeners">● 0 LISTENING</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="speaker"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="radio-controls">
+            <button class="btn" onclick="RadioControls.prev()" aria-label="Previous">⏮</button>
+            <button class="btn" id="btn-play-pause" onclick="RadioControls.togglePlay()" aria-label="Play/Pause">▶ / ⏸</button>
+            <button class="btn" onclick="RadioControls.next()" aria-label="Next">⏭</button>
+            <button class="btn btn-secondary" onclick="CassetteManager.eject()" aria-label="Eject">⏏</button>
+
+            <div class="sliders">
+                <div class="slider-group">
+                    <span>VOL</span>
+                    <input type="range" id="vol-slider" min="0" max="100" value="100" oninput="RadioControls.setVolume(this.value)">
+                </div>
+                <div class="slider-group">
+                    <span>AMBIENT</span>
+                    <input type="range" id="amb-slider" min="0" max="100" value="0" oninput="RadioControls.setAmbientVolume(this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <span id="ui-time-current">00:00</span>
+            <div class="progress-bar-wrapper" id="progress-bar-bg" onclick="Progress.seek(event)">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span id="ui-time-total">00:00</span>
+        </div>
+        
+        <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem;" onclick="UI.toggleTrackMenu()">SHOW TRACKLIST 🖹</button>
+        <div class="track-menu" id="track-menu">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+
+    <h2 class="library-title">कैसेट लाइब्रेरी</h2>
+    <div class="cassette-grid" id="cassette-grid">
+        <!-- Rendered via JS -->
+    </div>
+
+    <script>
+        /* =========================================================
+           JAVASCRIPT ARCHITECTURE (Bundled for single-file deployment)
+           ========================================================= */
+
+        // --- js/config.js ---
+        const APP_CONFIG = {
+            siteName: "नाई की दुकान",
+            tagline: "यहां पे कटिंग का पता नहीं पर गाने अच्छे बजते हैं।",
+            ambientAudio: {
+                enabled: true,
+                defaultVolume: 20
+            },
+            listenerStats: {
+                simulated: true,
+                baseListeners: 46
+            },
+            // YouTube Playlists configuration
+            playlists: {
+                sadSongs: {
+                    name: "दुख भरे नग्मे",
+                    // Using standard royalty-free/public valid IDs for demo purposes
+                    videos: ["RD5W-CRQRRW94"] 
+                },
+                nineties: {
+                    name: "90 के दशक के गाने",
+                    videos: ["PQmrmVs10X8", "Umqb9KENlCE"]
+                },
+                badmashi: {
+                    name: "बदमाशी",
+                    videos: ["VOLKqXqXGho", "1W5BA0lB6UA"]
+                },
+                lofi: {
+                    name: "Lofi Songs",
+                    videos: ["bH04KqI0tYk", "85XPNuaA31w"]
+                },
+                papaSongs: {
+                    name: "पापा के ज़माने के गाने",
+                    videos: ["9E0m9N-POfI", "dQw4w9WgXcQ"]
+                }
+            }
+        };
+
+        // --- js/playlist-manager.js ---
+        const PlaylistManager = {
+            currentPlaylistId: null,
+            currentTrackIndex: 0,
+            trackMetadata: {}, // Cache for fetched YouTube titles
+
+            loadPlaylist(playlistId) {
+                if (!APP_CONFIG.playlists[playlistId]) return;
+                this.currentPlaylistId = playlistId;
+                this.currentTrackIndex = 0;
+                
+                UI.updateStatus("LOADING...");
+                UI.renderTrackMenu();
+                this.playCurrentTrack();
+            },
+
+            playCurrentTrack() {
+                if (!this.currentPlaylistId) return;
+                const playlist = APP_CONFIG.playlists[this.currentPlaylistId];
+                if (this.currentTrackIndex >= playlist.videos.length) {
+                    this.currentTrackIndex = 0; // Loop back
+                }
+                
+                const videoId = playlist.videos[this.currentTrackIndex];
+                YouTubePlayer.loadAndPlay(videoId);
+                UI.updateTrackMenuHighlight();
+            },
+
+            next() {
+                if (!this.currentPlaylistId) return;
+                this.currentTrackIndex++;
+                this.playCurrentTrack();
+            },
+
+            prev() {
+                if (!this.currentPlaylistId) return;
+                this.currentTrackIndex--;
+                if (this.currentTrackIndex < 0) this.currentTrackIndex = APP_CONFIG.playlists[this.currentPlaylistId].videos.length - 1;
+                this.playCurrentTrack();
+            },
+            
+            playSpecific(index) {
+                this.currentTrackIndex = index;
+                this.playCurrentTrack();
+            }
+        };
+
+        // --- js/youtube-player.js ---
+        const YouTubePlayer = {
+            player: null,
+            isReady: false,
+
+            init() {
+                // Inject YT API
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                
+                // Expose global callback for YT API
+                window.onYouTubeIframeAPIReady = () => {
+                    this.player = new YT.Player('youtube-player', {
+                        height: '0',
+                        width: '0',
+                        playerVars: { 'autoplay': 0, 'controls': 0, 'origin': window.location.origin },
+                        events: {
+                            'onReady': this.onReady.bind(this),
+                            'onStateChange': this.onStateChange.bind(this),
+                            'onError': this.onError.bind(this)
+                        }
+                    });
+                };
+            },
+
+            onReady(event) {
+                this.isReady = true;
+                this.setVolume(document.getElementById('vol-slider').value);
+                console.log("YT Player Ready");
+            },
+
+            onStateChange(event) {
+                if (event.data === YT.PlayerState.PLAYING) {
+                    UI.updateStatus("PLAYING");
+                    document.getElementById('loaded-cassette-ui').parentElement.classList.add('playing');
+                    
+                    // Fetch title
+                    const data = this.player.getVideoData();
+                    if(data && data.title) {
+                        UI.updateTrackTitle(data.title);
+                        // Cache it for menu
+                        PlaylistManager.trackMetadata[data.video_id] = data.title;
+                        UI.renderTrackMenu();
+                    }
+                    Progress.startTracking();
+
+                } else if (event.data === YT.PlayerState.PAUSED) {
+                    UI.updateStatus("PAUSED");
+                    document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                    Progress.stopTracking();
+
+                } else if (event.data === YT.PlayerState.ENDED) {
+                    PlaylistManager.next();
+                }
+            },
+
+            onError(event) {
+                console.error("YouTube Error", event.data);
+                UI.updateTrackTitle("गाना नहीं मिला, अगला गाना चलाते हैं...");
+                setTimeout(() => PlaylistManager.next(), 3000);
+            },
+
+            loadAndPlay(videoId) {
+                if (!this.isReady) return;
+                UI.updateTrackTitle("गाना ढूंढ रहे हैं...");
+                this.player.loadVideoById(videoId);
+            },
+
+            toggle() {
+                if (!this.isReady || !PlaylistManager.currentPlaylistId) return;
+                const state = this.player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    this.player.pauseVideo();
+                } else {
+                    this.player.playVideo();
+                }
+            },
+
+            setVolume(vol) {
+                if (this.isReady) this.player.setVolume(vol);
+            },
+            
+            seekTo(seconds) {
+                if (this.isReady) this.player.seekTo(seconds, true);
+            }
+        };
+
+        // --- js/cassette.js ---
+        const CassetteManager = {
+            render() {
+                const container = document.getElementById('cassette-grid');
+                container.innerHTML = '';
+
+                Object.keys(APP_CONFIG.playlists).forEach(key => {
+                    const pl = APP_CONFIG.playlists[key];
+                    // Label colors logic based on name length for variety
+                    const colors = ['#ffcc00', '#ff6b6b', '#4ecdc4', '#ffe66d', '#ff8ed4'];
+                    const color = colors[pl.name.length % colors.length];
+
+                    const html = `
+                        <div class="cassette-card" id="cassette-${key}" onclick="CassetteManager.select('${key}')">
+                            <div class="cassette-label" style="background: ${color}">
+                                <div class="cassette-title">${pl.name}</div>
+                                <div class="cassette-reels">
+                                    <div class="reel"></div>
+                                    <div class="reel"></div>
+                                </div>
+                                <div class="tape-window"></div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            },
+
+            select(playlistId) {
+                const card = document.getElementById(`cassette-${playlistId}`);
+                if (!card) return;
+
+                // Stop current playback if any
+                if (YouTubePlayer.isReady) YouTubePlayer.player.stopVideo();
+                document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                document.getElementById('loaded-cassette-ui').classList.remove('visible');
+
+                // Animation clone
+                const clone = card.cloneNode(true);
+                const rect = card.getBoundingClientRect();
+                clone.style.position = 'fixed';
+                clone.style.top = rect.top + 'px';
+                clone.style.left = rect.left + 'px';
+                clone.style.margin = '0';
+                clone.classList.add('inserting-animation');
+                document.body.appendChild(clone);
+
+                UI.updateStatus("INSERTING...");
+                UI.updateTrackTitle("कैसेट लग रही है...");
+
+                setTimeout(() => {
+                    clone.remove();
+                    document.getElementById('loaded-cassette-ui').classList.add('visible');
+                    PlaylistManager.loadPlaylist(playlistId);
+                }, 1500);
+            },
+
+            eject() {
+                if (YouTubePlayer.isReady) YouTubePlayer.player.stopVideo();
+                PlaylistManager.currentPlaylistId = null;
+                document.getElementById('loaded-cassette-ui').classList.remove('visible');
+                document.getElementById('loaded-cassette-ui').parentElement.classList.remove('playing');
+                
+                UI.updateStatus("EJECTED");
+                UI.updateTrackTitle("NO CASSETTE");
+                document.getElementById('track-menu').innerHTML = '';
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('ui-time-current').innerText = '00:00';
+            }
+        };
+
+        // --- js/radio-controls.js ---
+        const RadioControls = {
+            togglePlay() { YouTubePlayer.toggle(); },
+            next() { PlaylistManager.next(); },
+            prev() { PlaylistManager.prev(); },
+            
+            setVolume(val) { YouTubePlayer.setVolume(val); },
+            
+            setAmbientVolume(val) {
+                const audio = document.getElementById('ambient-audio');
+                audio.volume = val / 100;
+                if (val > 0 && audio.paused) audio.play().catch(e=>console.log("Audio play prevented"));
+                if (val == 0) audio.pause();
+            }
+        };
+
+        // --- js/progress.js ---
+        const Progress = {
+            interval: null,
+
+            startTracking() {
+                if (this.interval) clearInterval(this.interval);
+                this.interval = setInterval(() => this.update(), 1000);
+            },
+
+            stopTracking() {
+                clearInterval(this.interval);
+            },
+
+            update() {
+                if (!YouTubePlayer.isReady || !YouTubePlayer.player.getCurrentTime) return;
+                
+                const current = YouTubePlayer.player.getCurrentTime() || 0;
+                const total = YouTubePlayer.player.getDuration() || 0;
+                
+                if (total > 0) {
+                    const percent = (current / total) * 100;
+                    document.getElementById('progress-fill').style.width = percent + '%';
+                    
+                    document.getElementById('ui-time-current').innerText = this.formatTime(current);
+                    document.getElementById('ui-time-total').innerText = this.formatTime(total);
+                }
+            },
+
+            seek(event) {
+                if (!YouTubePlayer.isReady || !YouTubePlayer.player.getDuration) return;
+                const total = YouTubePlayer.player.getDuration();
+                if (!total) return;
+
+                const wrapper = document.getElementById('progress-bar-bg');
+                const rect = wrapper.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const percent = clickX / rect.width;
+                
+                const targetTime = percent * total;
+                YouTubePlayer.seekTo(targetTime);
+                this.update(); // instant UI update
+            },
+
+            formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+        };
+
+        // --- js/listener-stats.js & js/location-status.js ---
+        const Stats = {
+            locations: [
+                "जयपुर से कोई सुन रहा है...", 
+                "Delhi is vibing...", 
+                "Mumbai local me baj raha hai", 
+                "Punjab vibes...", 
+                "Lucknow se live"
+            ],
+            
+            init() {
+                // Simulate listener count fluctuation
+                setInterval(() => {
+                    let listeners = APP_CONFIG.listenerStats.baseListeners + Math.floor(Math.random() * 15) - 5;
+                    document.getElementById('ui-listeners').innerText = `● ${listeners} LISTENING`;
+                }, 5000);
+
+                // Rotate locations
+                setInterval(() => {
+                    let loc = this.locations[Math.floor(Math.random() * this.locations.length)];
+                    document.getElementById('ui-location').innerText = loc;
+                }, 8000);
+            }
+        };
+
+        // --- js/ui.js ---
+        const UI = {
+            setupConfig() {
+                document.getElementById('ui-shop-name').innerText = APP_CONFIG.siteName;
+                document.getElementById('ui-shop-tagline').innerText = APP_CONFIG.tagline;
+            },
+
+            updateStatus(text) {
+                document.getElementById('ui-status').innerText = text;
+            },
+
+            updateTrackTitle(text) {
+                document.getElementById('ui-track-title').innerText = text;
+            },
+            
+            toggleTrackMenu() {
+                document.getElementById('track-menu').classList.toggle('active');
+            },
+
+            renderTrackMenu() {
+                const plId = PlaylistManager.currentPlaylistId;
+                if (!plId) return;
+                
+                const pl = APP_CONFIG.playlists[plId];
+                const menu = document.getElementById('track-menu');
+                menu.innerHTML = `<div style="color:var(--lcd-orange); margin-bottom:10px;">${pl.name}</div>`;
+                
+                pl.videos.forEach((vid, index) => {
+                    const title = PlaylistManager.trackMetadata[vid] || `Track ${index + 1} (Loading...)`;
+                    const isPlaying = index === PlaylistManager.currentTrackIndex ? 'playing' : '';
+                    
+                    menu.innerHTML += `
+                        <div class="track-item ${isPlaying}" onclick="PlaylistManager.playSpecific(${index})">
+                            ${(index+1).toString().padStart(2, '0')} — ${title}
+                        </div>
+                    `;
+                });
+            },
+
+            updateTrackMenuHighlight() {
+                this.renderTrackMenu();
+            }
+        };
+
+        // --- js/app.js ---
+        const App = {
+            init() {
+                // Hide overlay
+                document.getElementById('start-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('start-overlay').style.display = 'none', 500);
+                
+                // Initialize modules
+                UI.setupConfig();
+                CassetteManager.render();
+                YouTubePlayer.init();
+                Stats.init();
+                
+                // Set initial ambient volume
+                document.getElementById('amb-slider').value = APP_CONFIG.ambientAudio.defaultVolume;
+                RadioControls.setAmbientVolume(APP_CONFIG.ambientAudio.defaultVolume);
+            }
+        };
+
+    </script>
+</body>
+</html>
+```eof
+
